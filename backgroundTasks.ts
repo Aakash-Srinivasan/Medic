@@ -1,6 +1,6 @@
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
-import { getMedications } from './storage/medicationStorage';
+import { getMedications, resetStatusesForNewDay } from './storage/medicationStorage';
 
 TaskManager.defineTask('check-missed-doses', async () => {
     try {
@@ -31,3 +31,12 @@ TaskManager.defineTask('check-missed-doses', async () => {
 
     }
 });
+// Task to reset medication statuses at midnight
+TaskManager.defineTask('reset-medication-statuses', async () => {
+    try {
+      await resetStatusesForNewDay();
+      console.log('Medication statuses reset for the new day');
+    } catch (error) {
+      console.error('Error resetting medication statuses:', error);
+    }
+  });
