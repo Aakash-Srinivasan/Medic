@@ -13,7 +13,7 @@ export type Medication = {
   quantityType: any;
   quantity: any;
   notificationId: string;
-  status?:string;
+  status?:'not yet' | 'taken' | 'not taken';
 };
 
 // Status Type
