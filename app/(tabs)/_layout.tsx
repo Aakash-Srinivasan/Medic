@@ -32,13 +32,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
           tabBarStyle: { display: "none" },
           headerShown: true, // Enable the header
-          headerTitle: 'Medication Tracker', // Set the header title
+          headerTitle: 'HealTime', // Set the header title
           headerStyle: {
             backgroundColor: Colors[colorScheme ?? 'light'].background, // Background color for the header
           },
           headerTintColor: Colors[colorScheme ?? 'light'].text, // Text color for the header
           headerTitleStyle: {
-            fontWeight: 'bold', // Bold font for the title
+            fontFamily: 'bold', // Bold font for the title
             fontSize: 18,
           },
         }}

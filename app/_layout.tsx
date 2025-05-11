@@ -110,6 +110,12 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     Lemon: require('../assets/fonts/Lemon-Regular.ttf'),
+    Light:require('../assets/fonts/Poppins-Light.ttf'),
+    regular:require('../assets/fonts/Poppins-Regular.ttf'),
+    medium:require('../assets/fonts/Poppins-Medium.ttf'),
+    semibold:require('../assets/fonts/Poppins-SemiBold.ttf'),
+    bold:require('../assets/fonts/Poppins-Bold.ttf')
+
   });
 
   if (!loaded) {
@@ -144,70 +150,73 @@ export default function RootLayout() {
               alignItems: 'center',
             }}
           >
-            <Text style={{ fontSize: 18, marginBottom: 15 }}>
+            <Text style={{ fontSize: 18, marginBottom: 15 ,fontFamily:'bold'}}>
               Did you take {medicationName}?
             </Text>
 
             {!showSnoozeOptions ? (
-              <>
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 20 }}>
-                    <TouchableOpacity
-                      onPress={async () => {
-                        const today = new Date().toISOString().split('T')[0];
-                        const meds = await getMedications();
-                        const matchedMed = meds.find((med) =>
-                          medicationName?.toLowerCase().includes(med.name.toLowerCase())
-                        );
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 20,gap:20 }}>
+                {/* YES */}
+                <TouchableOpacity
+                  onPress={async () => {
+                    const today = new Date().toISOString().split('T')[0];
+                    const meds = await getMedications();
+                    const matchedMed = meds.find((med) =>
+                      medicationName?.toLowerCase().includes(med.name.toLowerCase())
+                    );
 
-                        if (matchedMed) {
-                          await saveStatus({
-                            medicationId: matchedMed.id,
-                            date: today,
-                            status: 'taken',
-                          });
-                        }
+                    if (matchedMed) {
+                      await saveStatus({
+                        medicationId: matchedMed.id,
+                        date: today,
+                        status: 'taken',
+                      });
+                    }
 
-                        setModalVisible(false);
-                      }}
-                      style={{ padding: 10, backgroundColor: '#0BFDA6', borderRadius: 10 }}
-                    >
-                      <Text style={{ color: 'white', fontWeight: 'bold' }}>Yes</Text>
-                    </TouchableOpacity>
+                    setModalVisible(false);
+                  }}
+                  style={{ paddingVertical: 10, paddingHorizontal: 20, backgroundColor: 'green', borderRadius: 10 }}
+                >
+                  <Text style={{ color: 'white', fontFamily: 'bold' }}>Yes</Text>
+                </TouchableOpacity>
 
-                    <TouchableOpacity
-                      onPress={async () => {
-                        const today = new Date().toISOString().split('T')[0];
-                        const meds = await getMedications();
-                        const matchedMed = meds.find((med) =>
-                          medicationName?.toLowerCase().includes(med.name.toLowerCase())
-                        );
+                {/* NO */}
+                <TouchableOpacity
+                  onPress={async () => {
+                    const today = new Date().toISOString().split('T')[0];
+                    const meds = await getMedications();
+                    const matchedMed = meds.find((med) =>
+                      medicationName?.toLowerCase().includes(med.name.toLowerCase())
+                    );
 
-                        if (matchedMed) {
-                          await saveStatus({
-                            medicationId: matchedMed.id,
-                            date: today,
-                            status: 'not taken',
-                          });
-                        }
+                    if (matchedMed) {
+                      await saveStatus({
+                        medicationId: matchedMed.id,
+                        date: today,
+                        status: 'not taken',
+                      });
+                    }
 
-                        setModalVisible(false);
-                      }}
-                      style={{ padding: 10, backgroundColor: '#FF7755', borderRadius: 10 }}
-                    >
-                      <Text style={{ color: 'white', fontWeight: 'bold' }}>No</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setShowSnoozeOptions(true)}>
-                      <Text style={{ color: 'white', fontWeight: 'bold' }}>Snooze</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </>
+                    setModalVisible(false);
+                  }}
+                  style={{ paddingVertical: 10, paddingHorizontal: 20, backgroundColor: '#FF7755', borderRadius: 10 }}
+                >
+                  <Text style={{ color: 'white', fontFamily: 'bold' }}>No</Text>
+                </TouchableOpacity>
+
+                {/* SNOOZE */}
+                <TouchableOpacity
+                  onPress={() => setShowSnoozeOptions(true)}
+                  style={{ paddingVertical: 10, paddingHorizontal: 20, backgroundColor: '#7E8EFF', borderRadius: 10 }}
+                >
+                  <Text style={{ color: 'white', fontFamily: 'bold' }}>Snooze</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <>
-                <Text style={{ marginBottom: 10 }}>Snooze for how many minutes?</Text>
+                <Text style={{ marginBottom: 10,fontFamily:'bold' }}>Snooze for how many minutes?</Text>
                 <View style={{ flexDirection: 'row', gap: 10 }}>
-                  {[1,5, 10].map((min) => (
+                  {[1, 5, 10].map((min) => (
                     <TouchableOpacity
                       key={min}
                       style={{
@@ -218,7 +227,7 @@ export default function RootLayout() {
                       }}
                       onPress={() => handleSnooze(min)}
                     >
-                      <Text style={{ color: 'white' }}>{min} min</Text>
+                      <Text style={{ color: 'white',fontFamily:'medium' }}>{min} min</Text>
                     </TouchableOpacity>
                   ))}
                 </View>

@@ -18,7 +18,6 @@ import { deleteMedication, getAllStatuses, getMedications, Medication, saveMedic
 import { AntDesign, Entypo, MaterialIcons, EvilIcons, MaterialCommunityIcons, FontAwesome6 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-
 export default function MedicationForm() {
   const [name, setName] = useState('');
   const [time, setTime] = useState(new Date());
@@ -48,31 +47,37 @@ export default function MedicationForm() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
-  const fetchMeds = async () => {
+const fetchMeds = async () => {
+  try {
     const meds = await getMedications();
     const statuses = await getAllStatuses();
-    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-
     const mergedMeds = meds.map((med) => {
-      const statusEntry = statuses.find(
-        (s) => s.medicationId === med.id && s.date === today
+      const status = statuses.find(
+        (s) => String(s.medicationId) === String(med.id) // Only match by medicationId
       );
+      console.log(`Medication: ${med.name}, Status Entry:`, status);
       return {
         ...med,
-        status: statusEntry ? statusEntry.status : 'not yet',
+        status: status ? status.status : 'not yet',
       };
     });
 
-    setMedications(mergedMeds); // Assume `setMedications` accepts MedicationWithStatus[]
-  };
+    setMedications(mergedMeds);
+
+  } catch (error) {
+    console.error('Error fetching medications or statuses:', error);
+  }
+};
+
 
   useEffect(() => {
     fetchMeds();
   }, [notificationId]);
 
   useEffect(() => {
-  setQuantity(quantityType === 'Syrup' ? 10 : 1);
-}, [quantityType]);
+    setQuantity(quantityType === 'Syrup' ? 10 : 1);
+  }, [quantityType]);
+
 
   const handleSaveMedication = async () => {
     const hour = time.getHours();
@@ -122,6 +127,7 @@ export default function MedicationForm() {
         content: {
           title: '💊 Medication Reminder',
           body: `It's time to take your ${name} (${foodTiming})`,
+          
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -141,7 +147,7 @@ export default function MedicationForm() {
         notificationId,
       };
       await saveMedication(newMed);
-      Alert.alert('Scheduled!', `Reminder for ${name} set at ${hour}:${minute}`);
+      Alert.alert('Scheduled!', `Reminder for ${name} set at ${hour-12}:${minute}`);
     }
 
     // Reset state
@@ -242,6 +248,7 @@ export default function MedicationForm() {
             fontWeight: 'bold',
             color: '#0077B6',
             textAlign: 'center',
+            fontFamily:'bold'
           }}>
             {formatTime(item.hour, item.minute)}
           </Text>
@@ -297,9 +304,6 @@ export default function MedicationForm() {
             </View>
           </View>
           <View style={{ flexDirection: 'column', justifyContent: 'space-between' }}>
-
-
-
             <AntDesign
               name="checkcircle"
               size={40}
@@ -340,7 +344,7 @@ export default function MedicationForm() {
               <Text
                 style={{
                   color: isSelected ? '#FFFFFF' : '#333333',
-                  fontWeight: isSelected ? 'bold' : 'normal',
+                  fontFamily: isSelected ? 'bold' : 'Light',
                   fontSize: 14,
                 }}
               >
@@ -352,7 +356,10 @@ export default function MedicationForm() {
       </View>
 
       {filteredMeds.length === 0 ? (
-        <Text style={styles.emptyText}>No medications in {selectedCategory}</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: "center" }}>
+          <Image source={require('@/assets/images/emptyMed.png')} style={{ width: 300, height: 300, resizeMode: 'contain' }} />
+          <Text style={styles.emptyText}>No medications in {selectedCategory}</Text>
+        </View>
       ) : (
         <FlatList
           data={filteredMeds}
@@ -482,44 +489,44 @@ export default function MedicationForm() {
               </TouchableOpacity>
             </View>
 
-              <>
+            <>
 
-                <FlatList
-                  horizontal
-                  data={
-                    quantityType === 'Pills'
-                      ? Array.from({ length: 20 }, (_, i) => i + 1)
-                      : [...Array(6)].map((_, i) => (i + 1) * 5)
-                  }
-                  keyExtractor={(item) => item.toString()}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      onPress={() => setQuantity(item)}
+              <FlatList
+                horizontal
+                data={
+                  quantityType === 'Pills'
+                    ? Array.from({ length: 20 }, (_, i) => i + 1)
+                    : [...Array(6)].map((_, i) => (i + 1) * 5)
+                }
+                keyExtractor={(item) => item.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => setQuantity(item)}
+                    style={{
+                      paddingVertical: 10,
+                      paddingHorizontal: 16,
+                      marginHorizontal: 6,
+                      borderRadius: 20,
+                      backgroundColor: quantity === item ? '#4CAF50' : '#F1F1F1',
+                      elevation: quantity === item ? 3 : 0,
+                      borderWidth: quantity === item ? 0 : 1,
+                      borderColor: '#ccc',
+                    }}
+                  >
+                    <Text
                       style={{
-                        paddingVertical: 10,
-                        paddingHorizontal: 16,
-                        marginHorizontal: 6,
-                        borderRadius: 20,
-                        backgroundColor: quantity === item ? '#4CAF50' : '#F1F1F1',
-                        elevation: quantity === item ? 3 : 0,
-                        borderWidth: quantity === item ? 0 : 1,
-                        borderColor: '#ccc',
+                        color: quantity === item ? '#fff' : '#333',
+                        fontWeight: '600',
+                        fontSize: 14,
                       }}
                     >
-                      <Text
-                        style={{
-                          color: quantity === item ? '#fff' : '#333',
-                          fontWeight: '600',
-                          fontSize: 14,
-                        }}
-                      >
-                        {quantityType === 'Pills' ? `${item}` : `${item} ml`}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                  showsHorizontalScrollIndicator={false}
-                />
-              </>
+                      {quantityType === 'Pills' ? `${item}` : `${item} ml`}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                showsHorizontalScrollIndicator={false}
+              />
+            </>
             <TouchableOpacity
               onPress={handleSaveMedication}
               style={styles.modalButton}
@@ -537,96 +544,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     height: '100%',
-    paddingHorizontal: 20,
-    paddingTop: 5,
+    paddingHorizontal: 16,
     backgroundColor: '#f9f9f9',
-  },
-  categoryButton: {
-    padding: 10,
-    margin: 5,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  activeButton: {
-    backgroundColor: '#7E8EFF',
-  },
-  activeText: {
-    color: 'white',
-  },
-  inactiveText: {
-    color: 'black',
-  },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    backgroundColor: '#f2f2f2',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginTop: 16,
-    borderRadius: 8,
   },
   card: {
     backgroundColor: '#fff',
     padding: 10,
-    // paddingVertical: 10,
     borderRadius: 8,
     marginVertical: 20,
     elevation: 2,
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  cardTime: {
-    fontSize: 14,
-    color: '#555',
+    fontFamily: 'bold',
 
   },
+
   cardDetails: {
     fontSize: 14,
     color: '#777',
+    fontFamily:'medium',
   },
   emptyText: {
-    textAlign: 'center',
-    marginTop: 50,
+    fontFamily:'bold',
     fontSize: 16,
     color: '#999',
-  },
-  mlLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    alignSelf: 'flex-start',
-  },
-  mlList: {
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-  },
-  mlItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginHorizontal: 5,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#f9f9f9',
-  },
-  mlItemSelected: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
-  },
-  mlItemText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  mlItemTextSelected: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-
-  medicationDetails: {
-    color: '#777',
-    fontSize: 14,
   },
   addButton: {
     position: 'absolute',
@@ -639,11 +581,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   modalOverlay: {
     flex: 1,
@@ -661,7 +598,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'bold',
   },
   input: {
     borderWidth: 1,
@@ -685,26 +622,15 @@ const styles = StyleSheet.create({
   timePickerText: {
     textAlign: 'center',
     color: '#333',
+    fontFamily:'regular'
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
+fontFamily:'medium',
     marginBottom: 5,
     alignSelf: 'flex-start',
   },
-  dropdown: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 15,
-    width: '100%',
-    backgroundColor: '#f9f9f9',
-  },
-  dropdownText: {
-    textAlign: 'center',
-    color: '#333',
-  },
+
   quantityContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -726,10 +652,11 @@ const styles = StyleSheet.create({
   },
   quantityTypeText: {
     color: '#333',
+    fontFamily:'medium'
   },
   quantityTypeTextActive: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontFamily: 'bold',
   },
   slider: {
     width: '100%',
@@ -745,6 +672,6 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'bold',
   },
 });
