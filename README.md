@@ -1,5 +1,5 @@
 ````markdown
-# 💊 HealthMedic – Intelligent Medicine Reminder App
+# 💊 HealTiime – Intelligent Medicine Reminder App
 
 MediPulse is a smart and stylish medicine reminder app built with **React Native** using **Expo**, **AsyncStorage**, and **Expo Notifications**. It helps users schedule medications, set reminders, snooze alerts, and track dosage timing — all while offering a smooth, animated UI experience.
 
