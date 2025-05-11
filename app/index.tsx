@@ -1,4 +1,4 @@
-import { Image, ImageSourcePropType, StyleSheet, TouchableOpacity, View,Text, TouchableWithoutFeedback } from "react-native";
+import { Image, ImageSourcePropType, StyleSheet, View, Text, TouchableWithoutFeedback } from "react-native";
 import React, { useState } from "react";
 import Animated, {
   FadeIn,
@@ -82,7 +82,7 @@ const HeadText = (props: HeadTextProps) => {
 export default function () {
   const { top, bottom } = useSafeAreaInsets();
   const scale = useSharedValue(1);
- const router = useRouter();
+  const router = useRouter();
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
@@ -116,55 +116,53 @@ export default function () {
           side="left"
           image={require("../assets/images/3.jpg")}
         />
-        <HeadText text="MedicCare" />
+        <HeadText text="HealTime" />
         <HeadText side="right" image={require("../assets/images/4.jpg")} />
       </View>
       <Animated.View
-      entering={FadeIn.delay(3000).springify().damping(18).stiffness(50)}
-      style={[styles.buttonContainer, animatedStyle]}
-    >
-      <TouchableWithoutFeedback
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        onPress={() => {
-          router.push("/(tabs)");
-          scale.value = withSpring(1, { damping: 10, stiffness: 100 });
-
-        }}
+        entering={FadeIn.delay(3000).springify().damping(18).stiffness(50)}
+        style={[styles.buttonContainer, animatedStyle]}
       >
-        <Animated.View style={styles.button}>
-          <Text style={styles.buttonText}>Get Started Be Healthy</Text>
-        </Animated.View>
-      </TouchableWithoutFeedback>
-    </Animated.View>
-       
-     
+        <TouchableWithoutFeedback
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          onPress={() => {
+            router.push("/(tabs)");
+            scale.value = withSpring(1, { damping: 10, stiffness: 100 });
+
+          }}
+        >
+          <Animated.View style={styles.button}>
+            <Text style={styles.buttonText}>Get Started Be Healthy</Text>
+          </Animated.View>
+        </TouchableWithoutFeedback>
+      </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-    buttonContainer: {
-        marginTop: 20,
-        alignSelf: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
-        elevation: 5, // Shadow for Android
-      },
-      button: {
-        backgroundColor: "#6495ed", // Blue background
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 25, // Rounded corners
-      },
-      buttonText: {
-        fontSize: 20,
-        fontFamily: "Lemon",
-        color: "#FFFFFF", // White text
-        textAlign: "center",
-      },
+  buttonContainer: {
+    marginTop: 20,
+    alignSelf: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5, // Shadow for Android
+  },
+  button: {
+    backgroundColor: "#6495ed", // Blue background
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 25, // Rounded corners
+  },
+  buttonText: {
+    fontSize: 20,
+    fontFamily: "Lemon",
+    color: "#FFFFFF", // White text
+    textAlign: "center",
+  },
   container: {
     flex: 1,
     backgroundColor: "#F7F7F7",

@@ -19,7 +19,6 @@ export default function TabLayout() {
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
           },
           default: {},
@@ -31,17 +30,18 @@ export default function TabLayout() {
           title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
           tabBarStyle: { display: "none" },
-          headerShown: true, // Enable the header
-          headerTitle: 'HealTime', // Set the header title
+          headerShown: true,
+          headerTitle: '💊✨ HealTime', 
           headerStyle: {
-            backgroundColor: Colors[colorScheme ?? 'light'].background, // Background color for the header
+            backgroundColor: Colors[colorScheme ?? 'light'].background, 
           },
-          headerTintColor: Colors[colorScheme ?? 'light'].text, // Text color for the header
+          headerTintColor: Colors[colorScheme ?? 'light'].text, 
           headerTitleStyle: {
-            fontFamily: 'bold', // Bold font for the title
+            fontFamily: 'bold', 
             fontSize: 18,
           },
         }}
+
       />
     </Tabs>
   );

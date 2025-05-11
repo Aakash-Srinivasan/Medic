@@ -9,14 +9,16 @@ import {
   FlatList,
   StyleSheet,
   Platform,
+  ScrollView,
   Image,
 } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import { deleteMedication, getAllStatuses, getMedications, Medication, saveMedication, updateMedication } from '../../storage/medicationStorage';
+import { deleteMedication, getAllStatuses, getMedications, Medication, saveMedication, updateMedication,saveStatus } from '../../storage/medicationStorage';
 import { AntDesign, Entypo, MaterialIcons, EvilIcons, MaterialCommunityIcons, FontAwesome6 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+
 
 export default function MedicationForm() {
   const [name, setName] = useState('');
@@ -39,7 +41,44 @@ export default function MedicationForm() {
     return 'Evening';
   };
   const [selectedCategory, setSelectedCategory] = useState<'Morning' | 'Afternoon' | 'Evening'>(getCurrentTimeCategory());
+ const [showSnoozeOptions, setShowSnoozeOptions] = useState(false);
+  const [snozzedTab, setSnozzedTab] = useState('');
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [medicationName, setMedicationName] = useState<string | null>(null);
+
+
+  const handleSnooze = async (minutes: number) => {
+    console.log(`Snoozed for ${minutes} minutes`);
+
+    // Schedule a new notification after `minutes` delay
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '⏰ Medication Reminder',
+        body: `Reminder after snooze: It’s time to take your ${medicationName}.`,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: minutes * 60,
+        repeats: false,
+      },
+    });
+
+    setShowSnoozeOptions(false);
+    setModalVisible(false);
+  };
+
+
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+      const { notification } = response;
+      const name = notification.request.content.body?.split(' ')[5]; // crude extraction
+      setMedicationName(name || 'this medication');
+      setModalVisible(true); // show modal when opened from notification
+    });
+
+    return () => subscription.remove();
+  }, []);
   const formatTime = (hour: number, minute: number) => {
     const date = new Date();
     date.setHours(hour);
@@ -47,27 +86,26 @@ export default function MedicationForm() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
-const fetchMeds = async () => {
-  try {
-    const meds = await getMedications();
-    const statuses = await getAllStatuses();
-    const mergedMeds = meds.map((med) => {
-      const status = statuses.find(
-        (s) => String(s.medicationId) === String(med.id) // Only match by medicationId
-      );
-      console.log(`Medication: ${med.name}, Status Entry:`, status);
-      return {
-        ...med,
-        status: status ? status.status : 'not yet',
-      };
-    });
+  const fetchMeds = async () => {
+    try {
+      const meds = await getMedications();
+      const statuses = await getAllStatuses();
+      const mergedMeds = meds.map((med) => {
+        const status = statuses.find(
+          (s) => String(s.medicationId) === String(med.id) 
+        );
+        return {
+          ...med,
+          status: status ? status.status : 'not yet',
+        };
+      });
 
-    setMedications(mergedMeds);
+      setMedications(mergedMeds);
 
-  } catch (error) {
-    console.error('Error fetching medications or statuses:', error);
-  }
-};
+    } catch (error) {
+      console.error('Error fetching medications or statuses:', error);
+    }
+  };
 
 
   useEffect(() => {
@@ -127,7 +165,7 @@ const fetchMeds = async () => {
         content: {
           title: '💊 Medication Reminder',
           body: `It's time to take your ${name} (${foodTiming})`,
-          
+
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -147,7 +185,7 @@ const fetchMeds = async () => {
         notificationId,
       };
       await saveMedication(newMed);
-      Alert.alert('Scheduled!', `Reminder for ${name} set at ${hour-12}:${minute}`);
+      Alert.alert('Scheduled!', `Reminder for ${name} set at ${hour - 12}:${minute}`);
     }
 
     // Reset state
@@ -248,7 +286,7 @@ const fetchMeds = async () => {
             fontWeight: 'bold',
             color: '#0077B6',
             textAlign: 'center',
-            fontFamily:'bold'
+            fontFamily: 'bold'
           }}>
             {formatTime(item.hour, item.minute)}
           </Text>
@@ -344,7 +382,7 @@ const fetchMeds = async () => {
               <Text
                 style={{
                   color: isSelected ? '#FFFFFF' : '#333333',
-                  fontFamily: isSelected ? 'bold' : 'Light',
+                  fontFamily: isSelected ? 'bold' : ' medium',
                   fontSize: 14,
                 }}
               >
@@ -356,7 +394,7 @@ const fetchMeds = async () => {
       </View>
 
       {filteredMeds.length === 0 ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: "center" }}>
+        <View style={{ justifyContent: 'center', alignItems: "center" }}>
           <Image source={require('@/assets/images/emptyMed.png')} style={{ width: 300, height: 300, resizeMode: 'contain' }} />
           <Text style={styles.emptyText}>No medications in {selectedCategory}</Text>
         </View>
@@ -365,7 +403,6 @@ const fetchMeds = async () => {
           data={filteredMeds}
           keyExtractor={(item) => item.id}
           renderItem={renders}
-          contentContainerStyle={{ paddingBottom: 20 }}
         />
       )}
 
@@ -376,121 +413,122 @@ const fetchMeds = async () => {
         <AntDesign name="plus" size={24} color="white" />
       </TouchableOpacity>
 
-      <Modal visible={inputModalVisible} transparent animationType="fade">
+      <Modal visible={inputModalVisible} transparent animationType='slide'>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 15, }}>
-              <Text style={styles.modalTitle}>Schedule Medication</Text>
-              <TouchableOpacity onPress={() => setInputModalVisible(false)}>
-                <AntDesign name="closesquare" size={24} color="black" />
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              placeholder="Medicine Name"
-              value={name}
-              onChangeText={setName}
-              style={styles.input}
-            />
-            <TouchableOpacity
-              onPress={() => setShowTimePicker(true)}
-              style={styles.timePickerButton}
-            >
-              <EvilIcons name="clock" size={24} color="black" />
-              <Text style={styles.timePickerText}>
-                {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
-              </Text>
+          <ScrollView>
+            <View style={styles.modalContent}>
+              <View style={{ width: 50, height: 10, backgroundColor: '#ddd', borderRadius: 20, marginBottom: 20 }}>
 
-            </TouchableOpacity>
-            {showTimePicker && (
-              <DateTimePicker
-                value={time}
-                mode="time"
-                is24Hour={false}
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={(event, selectedTime) => {
-                  setShowTimePicker(false);
-                  if (selectedTime) setTime(selectedTime);
-                }}
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 15, }}>
+                <Text style={styles.modalTitle}>Schedule Medication</Text>
+                <TouchableOpacity onPress={() => setInputModalVisible(false)}>
+                  <AntDesign name="closesquare" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                placeholder="Medicine Name"
+                value={name}
+                onChangeText={setName}
+                style={styles.input}
               />
-            )}
-            <Text style={styles.label}>Food Timing</Text>
-            <View style={styles.quantityContainer}>
               <TouchableOpacity
-                style={[
-                  styles.quantityTypeButton,
-                  foodTiming === 'Before Food' && styles.quantityTypeButtonActive,
-                ]}
-                onPress={() => setFoodTiming('Before Food')}
+                onPress={() => setShowTimePicker(true)}
+                style={styles.timePickerButton}
               >
-                <FontAwesome6 name="bowl-rice" size={24} color={foodTiming === 'Before Food' ? '#FFF' : '#777'} />
-                <Text
-                  style={[
-                    styles.quantityTypeText,
-                    foodTiming === 'Before Food' && styles.quantityTypeTextActive,
-                  ]}
-                >
-                  Before Food
+                <EvilIcons name="clock" size={24} color="black" />
+                <Text style={styles.timePickerText}>
+                  {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.quantityTypeButton,
-                  foodTiming === 'After Food' && styles.quantityTypeButtonActive,
-                ]}
-                onPress={() => setFoodTiming('After Food')}
-              >
-                <MaterialCommunityIcons name="bowl" size={24} color={foodTiming === 'After Food' ? '#fff' : '#777'} />
-                <Text
-                  style={[
-                    styles.quantityTypeText,
-                    foodTiming === 'After Food' && styles.quantityTypeTextActive,
-                  ]}
-                >
-                  After Food
-                </Text>
-              </TouchableOpacity>
-            </View>
 
-            <Text style={styles.label}>Quantity</Text>
-            <View style={styles.quantityContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.quantityTypeButton,
-                  quantityType === 'Pills' && styles.quantityTypeButtonActive,
-                ]}
-                onPress={() => setQuantityType('Pills')}
-              >
-                <FontAwesome6 name="capsules" size={24} color={quantityType === 'Pills' ? '#fff' : '#777'} />
-                <Text
-                  style={[
-                    styles.quantityTypeText,
-                    quantityType === 'Pills' && styles.quantityTypeTextActive,
-                  ]}
-                >
-                  Pills
-                </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.quantityTypeButton,
-                  quantityType === 'Syrup' && styles.quantityTypeButtonActive,
-                ]}
-                onPress={() => setQuantityType('Syrup')}
-              >
-                <MaterialCommunityIcons name="bottle-tonic-plus" size={24} color={quantityType === 'Syrup' ? '#fff' : '#777'} />
-                <Text
+              {showTimePicker && (
+                <DateTimePicker
+                  value={time}
+                  mode="time"
+                  is24Hour={false}
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={(event, selectedTime) => {
+                    setShowTimePicker(false);
+                    if (selectedTime) setTime(selectedTime);
+                  }}
+                />
+              )}
+              <Text style={styles.label}>Food Timing</Text>
+              <View style={styles.quantityContainer}>
+                <TouchableOpacity
                   style={[
-                    styles.quantityTypeText,
-                    quantityType === 'Syrup' && styles.quantityTypeTextActive,
+                    styles.quantityTypeButton,
+                    foodTiming === 'Before Food' && styles.quantityTypeButtonActive,
                   ]}
+                  onPress={() => setFoodTiming('Before Food')}
                 >
-                  Syrup
-                </Text>
-              </TouchableOpacity>
-            </View>
+                  <FontAwesome6 name="bowl-rice" size={24} color={foodTiming === 'Before Food' ? '#FFF' : '#777'} />
+                  <Text
+                    style={[
+                      styles.quantityTypeText,
+                      foodTiming === 'Before Food' && styles.quantityTypeTextActive,
+                    ]}
+                  >
+                    Before Food
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.quantityTypeButton,
+                    foodTiming === 'After Food' && styles.quantityTypeButtonActive,
+                  ]}
+                  onPress={() => setFoodTiming('After Food')}
+                >
+                  <MaterialCommunityIcons name="bowl" size={24} color={foodTiming === 'After Food' ? '#fff' : '#777'} />
+                  <Text
+                    style={[
+                      styles.quantityTypeText,
+                      foodTiming === 'After Food' && styles.quantityTypeTextActive,
+                    ]}
+                  >
+                    After Food
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-            <>
-
+              <Text style={styles.label}>Quantity</Text>
+              <View style={styles.quantityContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.quantityTypeButton,
+                    quantityType === 'Pills' && styles.quantityTypeButtonActive,
+                  ]}
+                  onPress={() => setQuantityType('Pills')}
+                >
+                  <FontAwesome6 name="capsules" size={24} color={quantityType === 'Pills' ? '#fff' : '#777'} />
+                  <Text
+                    style={[
+                      styles.quantityTypeText,
+                      quantityType === 'Pills' && styles.quantityTypeTextActive,
+                    ]}
+                  >
+                    Pills
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.quantityTypeButton,
+                    quantityType === 'Syrup' && styles.quantityTypeButtonActive,
+                  ]}
+                  onPress={() => setQuantityType('Syrup')}
+                >
+                  <MaterialCommunityIcons name="bottle-tonic-plus" size={24} color={quantityType === 'Syrup' ? '#fff' : '#777'} />
+                  <Text
+                    style={[
+                      styles.quantityTypeText,
+                      quantityType === 'Syrup' && styles.quantityTypeTextActive,
+                    ]}
+                  >
+                    Syrup
+                  </Text>
+                </TouchableOpacity>
+              </View>
               <FlatList
                 horizontal
                 data={
@@ -526,16 +564,117 @@ const fetchMeds = async () => {
                 )}
                 showsHorizontalScrollIndicator={false}
               />
-            </>
-            <TouchableOpacity
-              onPress={handleSaveMedication}
-              style={styles.modalButton}
-            >
-              <Text style={styles.modalButtonText}>Set Reminder</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                onPress={handleSaveMedication}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>Set Reminder</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+
         </View>
       </Modal>
+              <Modal visible={modalVisible} transparent animationType="fade">
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              padding: 30,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: 10,
+                padding: 20,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 18, marginBottom: 15, fontFamily: 'bold' }}>
+                Did you take {medicationName}?
+              </Text>
+
+              {!showSnoozeOptions ? (
+                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 20, gap: 20 }}>
+                  <TouchableOpacity
+                    onPress={async () => {
+                      const today = new Date().toISOString().split('T')[0];
+                      const meds = await getMedications();
+                      const matchedMed = meds.find((med) =>
+                        medicationName?.toLowerCase().includes(med.name.toLowerCase())
+                      );
+
+                      if (matchedMed) {
+                        await saveStatus({
+                          medicationId: matchedMed.id,
+                          date: today,
+                          status: 'taken',
+                        });
+                      }
+
+                      setModalVisible(false);
+                    }}
+                    style={{ paddingVertical: 10, paddingHorizontal: 20, backgroundColor: 'green', borderRadius: 10 }}
+                  >
+                    <Text style={{ color: 'white', fontFamily: 'bold' }}>Yes</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={async () => {
+                      const today = new Date().toISOString().split('T')[0];
+                      const meds = await getMedications();
+                      const matchedMed = meds.find((med) =>
+                        medicationName?.toLowerCase().includes(med.name.toLowerCase())
+                      );
+
+                      if (matchedMed) {
+                        await saveStatus({
+                          medicationId: matchedMed.id,
+                          date: today,
+                          status: 'not taken',
+                        });
+                      }
+
+                      setModalVisible(false);
+                    }}
+                    style={{ paddingVertical: 10, paddingHorizontal: 20, backgroundColor: '#FF7755', borderRadius: 10 }}
+                  >
+                    <Text style={{ color: 'white', fontFamily: 'bold' }}>No</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setShowSnoozeOptions(true)}
+                    style={{ paddingVertical: 10, paddingHorizontal: 20, backgroundColor: '#7E8EFF', borderRadius: 10 }}
+                  >
+                    <Text style={{ color: 'white', fontFamily: 'bold' }}>Snooze</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <>
+                  <Text style={{ marginBottom: 10, fontFamily: 'bold' }}>Snooze for how many minutes?</Text>
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    {[1, 5, 10].map((min) => (
+                      <TouchableOpacity
+                        key={min}
+                        style={{
+                          backgroundColor: '#4CAF50',
+                          paddingVertical: 10,
+                          paddingHorizontal: 15,
+                          borderRadius: 5,
+                        }}
+                        onPress={() => handleSnooze(min)}
+                      >
+                        <Text style={{ color: 'white', fontFamily: 'medium' }}>{min} min</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+        </Modal>
     </View>
   );
 }
@@ -556,17 +695,17 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontFamily: 'bold',
+    fontFamily: 'medium',
 
   },
 
   cardDetails: {
     fontSize: 14,
     color: '#777',
-    fontFamily:'medium',
+    fontFamily: 'medium',
   },
   emptyText: {
-    fontFamily:'bold',
+    fontFamily: 'bold',
     fontSize: 16,
     color: '#999',
   },
@@ -584,9 +723,9 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end',
+    // justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: '#fff',
   },
   modalContent: {
     backgroundColor: '#fff',
@@ -622,11 +761,11 @@ const styles = StyleSheet.create({
   timePickerText: {
     textAlign: 'center',
     color: '#333',
-    fontFamily:'regular'
+    fontFamily: 'regular'
   },
   label: {
     fontSize: 16,
-fontFamily:'medium',
+    fontFamily: 'medium',
     marginBottom: 5,
     alignSelf: 'flex-start',
   },
@@ -652,7 +791,7 @@ fontFamily:'medium',
   },
   quantityTypeText: {
     color: '#333',
-    fontFamily:'medium'
+    fontFamily: 'medium'
   },
   quantityTypeTextActive: {
     color: '#fff',
