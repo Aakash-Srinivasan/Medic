@@ -72,7 +72,7 @@ This project leverages:
 
 **Aakash Srinivasan**
 Full-Stack & Mobile Developer
-[🔗 Portfolio](https://your-portfolio-link.com) | [🐙 GitHub](https://github.com/yourusername)
+[🔗 Portfolio](https://aakash-srinivasan.netlify.app/) | [🐙 GitHub](https://github.com/Aakash-Srinivasan)
 
 ## 📃 License
 
