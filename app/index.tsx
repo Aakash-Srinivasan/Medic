@@ -1,5 +1,5 @@
 import { Image, ImageSourcePropType, StyleSheet, View, Text, TouchableWithoutFeedback } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Animated, {
   FadeIn,
   LinearTransition,
@@ -83,6 +83,14 @@ export default function () {
   const { top, bottom } = useSafeAreaInsets();
   const scale = useSharedValue(1);
   const router = useRouter();
+
+    useEffect(() => {
+    const timer = setTimeout(() => {
+      router.push("/(tabs)");
+    }, 3000);
+
+    return () => clearTimeout(timer); // Cleanup if user leaves early
+  }, []);
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
@@ -124,6 +132,7 @@ export default function () {
         style={[styles.buttonContainer, animatedStyle]}
       >
         <TouchableWithoutFeedback
+        testID="getStartedButton"
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           onPress={() => {

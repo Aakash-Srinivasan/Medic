@@ -410,7 +410,8 @@ export default function MedicationForm() {
         style={styles.addButton}
         onPress={() => setInputModalVisible(true)}
       >
-        <AntDesign name="plus" size={24} color="white" />
+        {/* <AntDesign name="plus" size={24} color="white" /> */}
+        <Text>Add</Text>
       </TouchableOpacity>
 
       <Modal visible={inputModalVisible} transparent animationType='slide'>

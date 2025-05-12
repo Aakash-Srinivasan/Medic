@@ -1,0 +1,10 @@
+appId: com.anonymous.Eventer # Replace with your actual app ID
+---
+- launchApp
+- tapOn: "Eventer"
+- waitForAnimationToEnd
+- tapOn: "Add"
+- inputText: "Paracetamol"
+- pressKey: Enter 
+- tapOn: "Set Reminder"
+- assertVisible: "Scheduled"
