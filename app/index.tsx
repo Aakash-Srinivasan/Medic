@@ -84,13 +84,6 @@ export default function () {
   const scale = useSharedValue(1);
   const router = useRouter();
 
-    useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push("/(tabs)");
-    }, 3000);
-
-    return () => clearTimeout(timer); // Cleanup if user leaves early
-  }, []);
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],

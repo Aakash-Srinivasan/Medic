@@ -1,10 +1,76 @@
-appId: com.anonymous.Eventer # Replace with your actual app ID
+appId: com.anonymous.Eventer
 ---
+
+# 1st Reminder Flow
 - launchApp
 - tapOn: "Eventer"
-- waitForAnimationToEnd
-- tapOn: "Add"
-- inputText: "Paracetamol"
-- pressKey: Enter 
+- tapOn: "Get Started Be Healthy"
+- tapOn:
+    point: "90%,84%"
+- inputText: "Liver Tonic"
+- pressKey: Enter
+- tapOn:
+    point: "50%,25%"
+- tapOn: "10"
+- tapOn: "10"
+- tapOn: "OK"
+- tapOn: "After Food"
+- tapOn: "Syrup"
+- tapOn: "15 ml"
 - tapOn: "Set Reminder"
-- assertVisible: "Scheduled"
+- assertVisible: "Scheduled!"
+- tapOn: "OK"
+
+# 2nd Reminder Flow
+- tapOn:
+    point: "90%,84%"
+- inputText: "Paracetamal"
+- pressKey: Enter
+- tapOn:
+    point: "50%,25%"
+- tapOn: "10"
+- tapOn: "20"
+- tapOn: "OK"
+- tapOn: "Before Food"
+- tapOn: "Pills"
+- tapOn: "1"
+- tapOn: "Set Reminder"
+- assertVisible: "Scheduled!"
+- tapOn: "OK"
+
+# Update Reminder
+- tapOn:
+    text: 
+    index: 0
+- tapOn: "Medicine Name"
+- eraseText
+- inputText: "Liver Tonic Stomach Pain"
+- tapOn:
+    point: "50%,25%"
+- tapOn: "10"
+- tapOn: "30"
+- tapOn: "OK"
+- tapOn: "After Food"
+- tapOn: "Syrup"
+- tapOn: "15 ml"
+- tapOn: "Set Reminder"
+- assertVisible: "Updated"
+- tapOn: "OK"
+
+# Delete Confirmation (Cancel)
+- tapOn:
+    point: "89%,24%"
+- assertVisible: "Delete Medication"
+- tapOn: "CANCEL"
+
+# Toggle Afternoon + Evening
+- tapOn: "Afternoon"
+- tapOn: "Evening"
+
+# Delete Confirmation (Confirm)
+- tapOn:
+    point: "89%,24%"
+- assertVisible: "Delete Medication"
+- tapOn: "DELETE"
+- tapOn: "OK"
+
