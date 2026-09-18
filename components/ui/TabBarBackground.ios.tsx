@@ -1,6 +1,10 @@
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { StyleSheet } from 'react-native';
+
+// @react-navigation/bottom-tabs' useBottomTabBarHeight can no longer be
+// imported directly (blocked at bundle time as of Expo SDK 56+). The
+// standard iOS tab bar is 49pt tall, so use that constant instead.
+const TAB_BAR_HEIGHT = 49;
 
 export default function BlurTabBarBackground() {
   return (
@@ -15,5 +19,5 @@ export default function BlurTabBarBackground() {
 }
 
 export function useBottomTabOverflow() {
-  return useBottomTabBarHeight();
+  return TAB_BAR_HEIGHT;
 }

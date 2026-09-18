@@ -1,32 +1,28 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import * as Notifications from 'expo-notifications';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useEffect, useState } from 'react';
-import { Alert, Button, Modal, View, Text, TouchableOpacity } from 'react-native';
+import { useEffect } from 'react';
+import { Alert } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as BackgroundTask from 'expo-background-task';
+import { isExpoGo, setNotificationHandlerSafe, requestNotificationPermissionsSafe } from '@/utils/notifications';
+import { ThemeProvider } from '@/context/ThemeContext';
 import '@/backgroundTasks';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Do NOT `import * as Notifications from 'expo-notifications'` here - even
+// that plain import throws synchronously inside Expo Go on SDK 53+ ("Android
+// Push notifications (remote notifications)... removed from Expo Go"),
+// before RootLayout is even defined. Everything notification-related goes
+// through utils/notifications.ts, which lazy-`require()`s the module only
+// when NOT running in Expo Go.
+setNotificationHandlerSafe();
 
 
 export default function RootLayout() {
-   const [firstTime, setFirstTime] = useState(false);
   const requestNotificationPermissions = async () => {
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== 'granted') {
+    const granted = await requestNotificationPermissionsSafe();
+    if (!granted && !isExpoGo) {
       Alert.alert("Permission denied", "Enable notifications in settings.");
     }
   };
@@ -38,39 +34,24 @@ export default function RootLayout() {
       await BackgroundTask.registerTaskAsync('reset-medication-statuses', {
         minimumInterval: 24 * 60 * 60,
       });
-      console.log('Background fetch task registered successfully!');
-    } catch (error) {
-      console.error('Error registering background fetch:', error);
-      Alert.alert(
-        'Background Task Error',
-        'Failed to register background task. Please try again later.'
-      );
+    } catch {
+      // Also expected in Expo Go (background tasks need a dev build too) -
+      // only surface this as a user-facing error outside of Expo Go.
+      if (!isExpoGo) {
+        Alert.alert(
+          'Background Task Error',
+          'Failed to register background task. Please try again later.'
+        );
+      }
     }
   };
 
-
-
-
-  useEffect(() => {
-    const checkFirstTime = async () => {
-      const hasVisited = await AsyncStorage.getItem('hasVisited');
-      console.log(hasVisited);
-      if (hasVisited) {
-        setFirstTime(true);
-        await AsyncStorage.setItem('hasVisited', 'true');
-      }
-
-    };
-
-    checkFirstTime();
-  }, []);
   useEffect(() => {
     requestNotificationPermissions();
     initBackgroundTask(); // Initialize background task on app load
   }, []);
 
 
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     Lemon: require('../assets/fonts/Lemon-Regular.ttf'),
@@ -88,17 +69,16 @@ export default function RootLayout() {
   }
 
   return (
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider>
+      <SafeAreaProvider>
         <Stack>
-       
-         
-      
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
- <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
 
         <StatusBar style="auto" />
-      </ThemeProvider>
+      </SafeAreaProvider>
+    </ThemeProvider>
   );
 }

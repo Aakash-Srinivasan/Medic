@@ -1,10 +1,17 @@
-import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
-import { PlatformPressable } from '@react-navigation/elements';
 import * as Haptics from 'expo-haptics';
+import { ComponentProps } from 'react';
+import { Pressable } from 'react-native';
 
-export function HapticTab(props: BottomTabBarButtonProps) {
+// @react-navigation/elements' PlatformPressable can no longer be imported
+// directly (blocked at bundle time as of Expo SDK 56+), so this is a trimmed
+// local replacement: a plain Pressable with the same haptic-on-press-in
+// behavior the tab bar relies on. Typing against Pressable's own props
+// (rather than @react-navigation/bottom-tabs' BottomTabBarButtonProps) keeps
+// this compatible with expo-router's internal tab bar button type, which no
+// longer matches the public react-navigation one exactly.
+export function HapticTab(props: Omit<ComponentProps<typeof Pressable>, 'ref'>) {
   return (
-    <PlatformPressable
+    <Pressable
       {...props}
       onPressIn={(ev) => {
         if (process.env.EXPO_OS === 'ios') {

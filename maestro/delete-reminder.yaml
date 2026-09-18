@@ -1,0 +1,44 @@
+appId: com.aakashsrinivasan.healtime
+---
+
+# Delete Reminder Flow (+ time-of-day tab toggling)
+# Sets up its own reminder first so this flow can run independently of
+# add-reminder.yaml.
+- launchApp
+- tapOn: "HealTime"
+- tapOn: "Get Started Be Healthy"
+- tapOn:
+    point: "90%,84%"
+- inputText: "Liver Tonic"
+- pressKey: Enter
+- tapOn:
+    point: "50%,25%"
+- tapOn: "10"
+- tapOn: "10"
+- tapOn: "OK"
+- tapOn: "After Food"
+- tapOn: "Syrup"
+- tapOn: "15 ml"
+- tapOn: "Set Reminder"
+- assertVisible: "Scheduled!"
+- tapOn: "OK"
+
+# Delete Confirmation (Cancel) - dismissing the dialog should leave the item.
+- tapOn:
+    point: "89%,24%"
+- assertVisible: "Delete Medication"
+- tapOn: "CANCEL"
+- assertVisible: "Liver Tonic"
+
+# Toggle Afternoon + Evening tabs - list should still render without errors.
+- tapOn: "Afternoon"
+- tapOn: "Evening"
+- tapOn: "Morning"
+
+# Delete Confirmation (Confirm)
+- tapOn:
+    point: "89%,24%"
+- assertVisible: "Delete Medication"
+- tapOn: "DELETE"
+- assertVisible: "Deleted"
+- tapOn: "OK"

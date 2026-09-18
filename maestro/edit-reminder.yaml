@@ -1,7 +1,9 @@
 appId: com.aakashsrinivasan.healtime
 ---
 
-# Add Reminder Flow
+# Edit Reminder Flow
+# Sets up its own reminder first so this flow can run independently of
+# add-reminder.yaml, then edits it and checks the update sticks.
 - launchApp
 - tapOn: "HealTime"
 - tapOn: "Get Started Be Healthy"
@@ -21,20 +23,22 @@ appId: com.aakashsrinivasan.healtime
 - assertVisible: "Scheduled!"
 - tapOn: "OK"
 
-# A second reminder, to confirm the list and time-of-day filtering handle
-# more than one entry.
+# Update Reminder
 - tapOn:
-    point: "90%,84%"
-- inputText: "Paracetamal"
-- pressKey: Enter
+    text:
+    index: 0
+- tapOn: "Medicine Name"
+- eraseText
+- inputText: "Liver Tonic Stomach Pain"
 - tapOn:
     point: "50%,25%"
 - tapOn: "10"
-- tapOn: "20"
+- tapOn: "30"
 - tapOn: "OK"
-- tapOn: "Before Food"
-- tapOn: "Pills"
-- tapOn: "1"
+- tapOn: "After Food"
+- tapOn: "Syrup"
+- tapOn: "15 ml"
 - tapOn: "Set Reminder"
-- assertVisible: "Scheduled!"
+- assertVisible: "Updated"
 - tapOn: "OK"
+- assertVisible: "Liver Tonic Stomach Pain"

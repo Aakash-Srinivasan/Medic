@@ -1,13 +1,13 @@
 ````markdown
-# 💊 HealTiime – Intelligent Medicine Reminder App
+# 💊 HealTime – Intelligent Medicine Reminder App
 
-MediPulse is a smart and stylish medicine reminder app built with **React Native** using **Expo**, **AsyncStorage**, and **Expo Notifications**. It helps users schedule medications, set reminders, snooze alerts, and track dosage timing — all while offering a smooth, animated UI experience.
+HealTime is a smart and stylish medicine reminder app built with **React Native** using **Expo**, **AsyncStorage**, and **Expo Notifications**. It helps users schedule medications, set reminders, snooze alerts, and track dosage timing — all while offering a smooth, animated UI experience.
 
 ## 🎯 Features
 
 - 🕒 **Schedule Reminders**: Set personalized reminders for different medicines.
 - 🔔 **Local Notifications**: Get push alerts even when the app is closed.
-- 💤 **Snooze Options**: Can't take your medicine now? Snooze by 5, 10, or 15 minutes.
+- 💤 **Snooze Options**: Can't take your medicine now? Snooze by 1, 5, or 10 minutes.
 - 🍽️ **Food Timing Selection**: Choose between "Before Food" or "After Food".
 - 💊 **Dosage Input**: Select between pills or syrup with easy sliders and quantity selectors.
 - 📦 **Persistent Storage**: Medicines are stored using AsyncStorage for offline reliability.
@@ -21,7 +21,7 @@ MediPulse is a smart and stylish medicine reminder app built with **React Native
 - **Expo Task Manager**
 - **AsyncStorage**
 - **FlatList + Modals**
-- **React Hooks (useState, useEffect)**
+- **React Hooks (useState, useEffect, custom hooks)**
 
 ## 📸 Screenshots & Demo
 
@@ -33,8 +33,8 @@ MediPulse is a smart and stylish medicine reminder app built with **React Native
 1. Clone the repo  
    ```bash
    git clone https://github.com/Aakash-Srinivasan/Medic.git
-   cd medipulse
-````
+   cd HealTime
+   ```
 
 2. Install dependencies
 
@@ -56,17 +56,19 @@ MediPulse is a smart and stylish medicine reminder app built with **React Native
 
 This project leverages:
 
-* `expo-notifications` to schedule, update, and cancel notifications.
+* `expo-notifications` to schedule, update, and cancel notifications, passing the medication id through the notification's `data` payload so snooze/interaction handlers never have to parse display text.
 * `expo-task-manager` to handle background tasks and notification triggers.
 * `@react-native-async-storage/async-storage` to persist medicine data across sessions.
 * FlatList filtering by morning, afternoon, and evening slots based on selected time.
+* Small, focused components and hooks (`useMedications`, `useMedicationForm`, `useDoseReminder`) rather than one large screen file.
 
 ## 🧪 Test Cases Covered
 
-* Notification scheduling with time picker
-* Snooze logic and delayed triggers
-* Food timing toggles
-* Daily cleanup and status reset
+Maestro flows (see `maestro/`) cover:
+
+* Adding a reminder (`add-reminder.yaml`)
+* Editing a reminder (`edit-reminder.yaml`)
+* Deleting a reminder and toggling time-of-day tabs (`delete-reminder.yaml`)
 
 ## 🧑‍💻 Author
 
@@ -79,4 +81,3 @@ Full-Stack & Mobile Developer
 MIT License
 
 ---
-

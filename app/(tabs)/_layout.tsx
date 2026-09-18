@@ -1,19 +1,21 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
+import { RFValue } from 'react-native-responsive-fontsize';
+import { AboutModal } from '@/components/AboutModal';
+import { HistoryModal } from '@/components/HistoryModal';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { colors } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: colors.accent,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -31,15 +33,21 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
           tabBarStyle: { display: "none" },
           headerShown: true,
-          headerTitle: '💊✨ HealTime', 
+          headerTitle: '💊✨ HealTime',
           headerStyle: {
-            backgroundColor: Colors[colorScheme ?? 'light'].background, 
+            backgroundColor: colors.background,
           },
-          headerTintColor: Colors[colorScheme ?? 'light'].text, 
+          headerTintColor: colors.text,
           headerTitleStyle: {
-            fontFamily: 'bold', 
-            fontSize: 18,
+            fontFamily: 'bold',
+            fontSize: RFValue(18),
           },
+          headerRight: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <HistoryModal />
+              <AboutModal />
+            </View>
+          ),
         }}
 
       />

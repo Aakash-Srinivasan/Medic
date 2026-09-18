@@ -1,23 +1,21 @@
 {
   "expo": {
-    "name": "Eventer",
-    "slug": "Eventer",
-    "version": "1.0.0",
+    "name": "HealTime",
+    "slug": "healtime",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/healtime.png",
-    "scheme": "eventer",
+    "icon": "./assets/images/icon.png",
+    "scheme": "healtime",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/1024.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#070C18"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.Eventer"
+      "package": "com.aakashsrinivasan.healtime"
     },
     "web": {
       "bundler": "metro",
@@ -29,10 +27,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/1024.png",
-          "imageWidth": 200,
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 220,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#070C18"
         }
       ],
       "expo-background-task"

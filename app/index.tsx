@@ -1,5 +1,5 @@
 import { Image, ImageSourcePropType, StyleSheet, View, Text, TouchableWithoutFeedback } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Animated, {
   FadeIn,
   LinearTransition,
@@ -11,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { RFValue } from "react-native-responsive-fontsize";
 
 const gap = 10;
 
@@ -79,7 +80,7 @@ const HeadText = (props: HeadTextProps) => {
   );
 };
 
-export default function () {
+export default function WelcomeScreen() {
   const { top, bottom } = useSafeAreaInsets();
   const scale = useSharedValue(1);
   const router = useRouter();
@@ -103,7 +104,7 @@ export default function () {
     >
       <View style={{ gap }}>
         <HeadText
-          text="Wellcome"
+          text="Welcome"
           side="right"
           image={require("../assets/images/One.png")}
         />
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     borderRadius: 25, // Rounded corners
   },
   buttonText: {
-    fontSize: 20,
+    fontSize: RFValue(20),
     fontFamily: "Lemon",
     color: "#FFFFFF", // White text
     textAlign: "center",
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   headText: {
-    fontSize: 45,
+    fontSize: RFValue(45),
     fontFamily: "Lemon",
     color: "#0C1824",
   },
