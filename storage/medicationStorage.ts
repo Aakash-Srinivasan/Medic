@@ -3,23 +3,33 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const STORAGE_KEY = 'medications';
 const STATUS_KEY = 'medication_statuses';
 
+// One scheduled dose time for a medication. A medication can have several
+// of these (e.g. a twice-daily prescription), each with its own scheduled
+// local notification.
+export type MedicationTime = {
+  hour: number;
+  minute: number;
+  notificationId: string;
+};
+
 // Medication Type
 export type Medication = {
   id: string;
   name: string;
-  hour: number;
-  minute: number;
-  foodTiming: any;
-  quantityType: any;
-  quantity: any;
-  notificationId: string;
-  status?:'not yet' | 'taken' | 'not taken';
+  times: MedicationTime[];
+  foodTiming: string;
+  quantityType: string;
+  quantity: number;
+  notes?: string;
 };
 
-// Status Type
+// Status Type - one entry per medication, per day, per scheduled dose time
+// (hour/minute identify which of the medication's times this is).
 export type MedicationStatus = {
   medicationId: string;
   date: string; // Format: 'YYYY-MM-DD'
+  hour: number;
+  minute: number;
   status: 'not yet' | 'taken' | 'not taken';
 };
 
@@ -71,25 +81,30 @@ export const saveStatus = async (status: MedicationStatus) => {
   const existing = await AsyncStorage.getItem(STATUS_KEY);
   const statuses: MedicationStatus[] = existing ? JSON.parse(existing) : [];
 
-  // Remove old status for this med and date
+  // Remove any old status for this exact medication + day + dose time
   const filtered = statuses.filter(
     (s) =>
-      !(s.medicationId === status.medicationId && s.date === status.date)
+      !(
+        s.medicationId === status.medicationId &&
+        s.date === status.date &&
+        s.hour === status.hour &&
+        s.minute === status.minute
+      )
   );
 
   filtered.push(status);
   await AsyncStorage.setItem(STATUS_KEY, JSON.stringify(filtered));
 };
 
-export const getStatusForMedication = async (
+export const getStatusForSlot = async (
   medicationId: string,
-  date: string
+  date: string,
+  hour: number,
+  minute: number
 ): Promise<MedicationStatus | undefined> => {
-  const existing = await AsyncStorage.getItem(STATUS_KEY);
-  const statuses: MedicationStatus[] = existing ? JSON.parse(existing) : [];
-
+  const statuses = await getAllStatuses();
   return statuses.find(
-    (s) => s.medicationId === medicationId && s.date === date
+    (s) => s.medicationId === medicationId && s.date === date && s.hour === hour && s.minute === minute
   );
 };
 
@@ -98,23 +113,39 @@ export const getAllStatuses = async (): Promise<MedicationStatus[]> => {
   return existing ? JSON.parse(existing) : [];
 };
 
+// How long adherence history is kept before being trimmed - long enough for
+// a meaningful history view, short enough that AsyncStorage doesn't grow
+// forever on a device that's never uninstalled.
+const HISTORY_RETENTION_DAYS = 90;
+
 export const resetStatusesForNewDay = async () => {
   const meds = await getMedications();
   const today = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
 
+  // NOTE: this used to REPLACE the entire status list with just today's
+  // entries, which silently wiped all adherence history every night. It now
+  // only appends a fresh 'not yet' placeholder for each dose time that
+  // doesn't already have an entry for today, so every previous day's record
+  // survives.
   const statuses: MedicationStatus[] = await getAllStatuses();
-  const updatedStatuses = meds.map((med) => {
-    const existing = statuses.find(
-      (s) => s.medicationId === med.id && s.date === today
-    );
-    return (
-      existing || {
-        medicationId: med.id,
-        date: today,
-        status: 'not yet',
+  const missingToday: MedicationStatus[] = [];
+  meds.forEach((med) => {
+    med.times.forEach((t) => {
+      const exists = statuses.some(
+        (s) => s.medicationId === med.id && s.date === today && s.hour === t.hour && s.minute === t.minute
+      );
+      if (!exists) {
+        missingToday.push({ medicationId: med.id, date: today, hour: t.hour, minute: t.minute, status: 'not yet' });
       }
-    );
+    });
   });
 
-  await AsyncStorage.setItem(STATUS_KEY, JSON.stringify(updatedStatuses));
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - HISTORY_RETENTION_DAYS);
+  const cutoffKey = cutoff.toISOString().split('T')[0];
+  const trimmed = statuses.filter((s) => s.date >= cutoffKey);
+
+  if (missingToday.length > 0 || trimmed.length !== statuses.length) {
+    await AsyncStorage.setItem(STATUS_KEY, JSON.stringify([...trimmed, ...missingToday]));
+  }
 };
